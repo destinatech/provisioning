@@ -1,0 +1,321 @@
+#!/usr/bin/env bash
+#
+# Copyright (c) 2022 E. F. M. trading as Destinatech
+# All rights reserved.
+#
+# See top-level LICENSE.txt file for lecensing terms; alternativel
+# they can be viewed online at:
+#
+#   <https://destinatech.com/licensing/github>
+#
+# Author: AUTHOR_NAME <AUTHOR_EMAIL>
+# Last-Modified: 2023/05/12 04:23-27 BST
+##
+
+# Script filename
+SCRIPT_NAME="${0##*/}"
+
+## {{{ error_internal()
+function error_internal()
+{
+  echo >&2 "$SCRIPT_NAME: internal error:" "$@"
+}
+## }}}
+
+## {{{ die_internal()
+function die_internal()
+{
+  error_internal "$@"
+  exit 1
+}
+## }}}
+
+## {{{ error()
+function error()
+{
+  echo >&2 "$SCRIPT_NAME: error:" "$@"
+}
+## }}}
+
+## {{{ die()
+function die()
+{
+  error "$@"
+  exit 1
+}
+## }}}
+
+## {{{ error_string()
+function error_string()
+{
+  local ret=0
+
+  if [[ $# -lt 1 ]]
+  then
+    error_internal "error_string() called with $# arguments (expecting 1 or more)"
+    return 1
+  fi
+
+  local id="${1,,}" # Convert string to all-lower case
+
+  case "$id" in
+
+    usage_args_required)
+      echo "Missing argument.  See '$SCRIPT_NAME --help' for usage instructions"
+      ;;
+
+    invalid_option)
+
+      if [[ $# -eq 2 ]]
+      then
+        shift
+        echo "Invalid option '$1'"
+      else
+        echo "Invalid option"
+      fi
+      ;;
+
+    option_template_requires_argument)
+      echo "Option -t/--template requires one argument"
+      ;;
+
+    option_template_invalid_argument)
+      if [[ $# -eq 2 ]]
+      then
+        shift
+        echo "Argument to option -t/--template '$1' is invalid"
+      else
+        echo "Argument to option -t/--template is invalid"
+      fi
+      ;;
+
+    invalid_template_name)
+      if [[ $# -eq 2 ]]
+      then
+        shift
+        echo "Template '$1' does not exist"
+      else
+        echo "Template does not exist"
+      fi
+      ;;
+
+    output_file_exists)
+      if [[ $# -eq 2 ]]
+      then
+        shift
+        echo "Output file '$1' exists"
+      else
+        echo "Output file exists"
+      fi
+      ;;
+
+    *)
+      error_internal "error_string() called with invalid error identifier '$1'"
+      ret=1
+      ;;
+
+  esac
+
+  return $ret
+}
+## }}}
+
+## {{{ silent()
+function silent()
+{
+  if ! "$@" >/dev/null 2>&1
+  then
+    return 1
+  fi
+
+  return 0
+}
+## }}}
+
+## {{{ info()
+function info()
+{
+  echo ">>" "$@"
+}
+## }}}
+
+## {{{ _usage()
+function _usage()
+{
+  echo
+  echo "Usage: $SCRIPT_NAME [options...] <path>"
+  echo
+  echo "Create (instantiate) new file based on named template"
+  echo
+  echo "Options:"
+  echo
+  echo "  -h, --help"
+  echo "  Print these usage instructions"
+  echo
+  echo "  -t <name>, --template <name>"
+  echo "  Name of template to instantiate"
+}
+## }}}
+
+## {{{ usage()
+function usage()
+{
+  local status=1
+  local arg=
+
+  while [[ $# -gt 0 ]]
+  do
+    arg="$1"
+    shift
+
+    case "$arg" in
+
+      --std)
+        _usage
+        status=0
+        ;;
+
+      --no-args)
+        echo >&2 "$(error_string usage_args_required)"
+        ;;
+
+      -*)
+        die_internal "usage() called with invalid option '$arg'"
+        ;;
+      *)
+        die_internal "usage() called with unexpected argument '$arg'"
+        ;;
+
+    esac
+  done
+
+  exit $status
+}
+## }}}
+
+## {{{ main()
+function main()
+{
+  local arg=
+  local template=
+
+  if [[ ! -d templates ]]
+  then
+    die "This script needs to be run from the top-level directory which contains 'templates/'"
+  fi
+
+  while [[ $# -gt 0 ]]
+  do
+    arg="$1"
+    shift
+
+    case "$arg" in
+
+      -h|--help)
+        usage --std
+        ;;
+
+      -t|--template*)
+        local opt="$arg"
+
+        if [[ $arg == -t ]]
+        then
+          # Short option
+          #
+
+          if [[ $# -lt 1 ]]
+          then
+            die "$(error_string option_template_requires_argument)"
+          fi
+
+          temp="$1"
+          shift
+
+          if [[ $temp =~ [^a-zA-Z0-9] ]]
+          then
+            die "$(error_string option_template_invalid_argument "$temp")"
+          fi
+
+          template="$temp"
+          continue
+        fi
+
+        if [[ $arg == --template ]]
+        then
+          # --template <arg>
+          #
+
+          [[ $# -lt 1 ]] && die "$(error_string option_template_requires_argument)"
+
+          local temp="$1"
+          shift
+
+          [[ -z $temp ]] && die "$(error_string option_template_requires_argument)"
+
+          template="$temp"
+          continue
+        fi
+
+        if [[ ${arg:0:11} == --template= ]]
+        then
+          # --template=<arg>
+          #
+
+          if [[ ${arg:0:11} != --template= ]]
+          then
+            die "$(error_string invalid_option "$arg")"
+          fi
+
+          local temp="${arg:11}"
+
+          [[ -z $temp ]] && die "$(error_string option_template_requires_argument)"
+
+          template="$temp"
+          continue
+        fi
+
+        die "$(error_string invalid_option "$arg")"
+        ;;
+
+      -*)
+        die "$(error_string invalid_option "$arg")"
+        ;;
+
+      *)
+        # Arguments
+        set -- "$arg" "$@"
+        break 2
+        ;;
+
+    esac
+  done
+
+  if [[ $# -eq 0 ]]
+  then
+    usage --no-args
+  elif [[ ! -f templates/template.$template ]]
+  then
+    die "$(error_string invalid_template_name "$template")"
+  fi
+
+  local output_file="$1"
+  if [[ -f $output_file ]]
+  then
+    die "$output_file: $(error_string output_file_exists)"
+  fi
+
+  info "Instantiating $template as $output_file"
+
+  rsync -aq "templates/template.$template" "$output_file" \
+    || die "rsync(1) failed"
+
+  return 0
+}
+## }}}
+
+main "$@"
+exit $?
+
+##
+# vim: ts=2 sw=2 et fdm=marker :
+##
