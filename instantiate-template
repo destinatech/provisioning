@@ -304,7 +304,7 @@ function main()
     die "$output_file: $(error_string output_file_exists)"
   fi
 
-  info "Instantiating $template as $output_file"
+  info "Instantiating $template template as $output_file"
 
   rsync -aq "templates/template.$template" "$output_file" \
     || die "rsync(1) failed"
