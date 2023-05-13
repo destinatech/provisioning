@@ -3,7 +3,7 @@
 # Copyright (c) 2022 E. F. M. trading as Destinatech
 # All rights reserved.
 #
-# See top-level LICENSE.txt file for lecensing terms; alternativel
+# See top-level LICENSE.txt file for licensing terms; alternatively
 # they can be viewed online at:
 #
 #   <https://destinatech.com/licensing/github>
