@@ -5,17 +5,17 @@ All rights reserved.
 
 **Licensing Terms**:
 
-  (1) Unless otherwise stated, on a per-file basis, the content of
+  (1) Unless otherwise stated, on a per-file basis, the content of  
       this repository ("the content") is proprietary.
 
-  (2) You may not modify, publish, distribute, transmit, participate
-      in the transfer or sale, create derivative works, or in any way
-      exploit, any of the content, in whole or in part except as
+  (2) You may not modify, publish, distribute, transmit, participate  
+      in the transfer or sale, create derivative works, or in any way  
+      exploit, any of the content, in whole or in part except as  
       provided in these Terms.
 
-  (3) Unless otherwise stated, a perpetual license is hereby granted
-      to GitHub, Inc., to store, publish, transmit, and or present in
-      any other way, any of the content, in whole or in part, to its
+  (3) Unless otherwise stated, a perpetual license is hereby granted  
+      to GitHub, Inc., to store, publish, transmit, and or present in  
+      any other way, any of the content, in whole or in part, to its  
       users world-wide.
 
 *END*
