@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright (c) 2022 E. F. M. trading as Destinatech
+# Copyright (c) 2023 E. F. M. trading as Destinatech
 # All rights reserved.
 #
 # See top-level LICENSE.txt file for licensing terms; alternatively
